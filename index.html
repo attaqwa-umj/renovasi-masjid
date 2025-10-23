@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donasi Renovasi Masjid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes progress-stripe {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 40px 0;
+            }
+        }
+
+        .progress-striped-animated {
+            background-image: linear-gradient(45deg,
+                    rgba(255, 255, 255, 0.3) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.3) 50%,
+                    rgba(255, 255, 255, 0.3) 75%,
+                    transparent 75%,
+                    transparent);
+            background-size: 40px 40px;
+            animation: progress-stripe 1s linear infinite;
+        }
+
+        .modal-zoom {
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <div class="max-w-3xl mx-auto mt-8 px-4">
+        <!-- Progress Info -->
+        <div class="bg-white rounded-xl shadow p-6">
+            <div class="text-center mb-2 text-lg font-medium">Progress Donasi (Tahap 1)</div>
+            <div class="w-full bg-gray-200 rounded-full h-5 mb-3 overflow-hidden relative">
+                <div id="progressBar"
+                    class="bg-green-600 progress-striped-animated h-5 rounded-full absolute left-0 top-0"
+                    style="width:0%;"></div>
+                <div id="transferedBar" class="bg-blue-500 h-5 rounded-full absolute left-0 top-0 opacity-70"
+                    style="width:0%;"></div>
+            </div>
+            <p id="progressText" class="text-center text-green-700 font-bold text-xl">0 Terkumpul</p>
+            <p id="transferText" class="text-center text-blue-700 font-semibold text-lg">0 Diterima</p>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex justify-center gap-4 mt-4">
+            <a href="https://drive.google.com/drive/folders/1JuMwvTACe8UTlgvRAjqm3nO4P0N4jf3o?usp=sharing"
+                target="_blank"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-lg shadow transition">
+                File Proposal Renovasi
+            </a>
+            <button onclick="toggleModal()"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition">
+                Donasi Sekarang
+            </button>
+        </div>
+        <!-- Galeri Renovasi -->
+        <div class="mt-8 bg-white rounded-xl shadow p-6">
+            <h2 class="text-xl font-semibold mb-4 text-green-700">Galeri Renovasi</h2>
+
+            <!-- Carousel Thumbnails -->
+            <div class="relative overflow-hidden">
+                <div id="galleryTrack"
+                    class="flex gap-3 transition-transform duration-300 ease-out cursor-grab active:cursor-grabbing select-none">
+                </div>
+
+                <!-- Controls -->
+                <button id="prevBtn"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 z-10">‹</button>
+                <button id="nextBtn"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 z-10">›</button>
+            </div>
+        </div>
+
+        <!-- Modal Popup -->
+        <div id="galleryModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+            <div id="galleryOverlay" class="absolute inset-0"></div>
+
+            <div class="relative flex items-center justify-center">
+                <img id="galleryModalImg"
+                    class="max-w-[80vw] max-h-[80vh] rounded-lg border-4 border-white shadow-2xl select-none object-contain"
+                    src="" alt="Foto Renovasi" />
+
+                <!-- Close Button -->
+                <button id="closeModalBtn"
+                    class="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-md border-2 border-white shadow-lg px-2 py-1">
+                    ✕
+                </button>
+
+                <!-- Navigation -->
+                <button id="modalPrev"
+                    class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/70">‹</button>
+                <button id="modalNext"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/70">›</button>
+            </div>
+        </div>
+
+
+
+
+        <!-- Ranking Donatur -->
+        <div class="mt-8 bg-white rounded-xl shadow p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-green-700 text-center">TOP DONATUR</h2>
+            <div id="donationList" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- Modal Donasi -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg relative modal-zoom">
+            <h3 class="text-xl font-bold mb-4 text-green-700">Informasi Rekening Donasi</h3>
+
+            <p><strong>Nama Bank:</strong> BANK SYARIAH INDONESIA (BSI)</p>
+            <p class="mb-2">
+                <strong>No. Rek:</strong>
+                <span id="rekening">7152087227</span>
+                <button onclick="copyRekening()" class="ml-2 text-sm text-blue-600 hover:underline">SALIN</button>
+            </p>
+            <p><strong>Atas Nama:</strong> Masjid At-Taqwa</p>
+
+            <div class="my-4">
+                <p class="font-semibold mb-2 text-center">QR Code (QRIS):</p>
+                <div class="w-full flex justify-center my-2">
+                    <img src="https://attaqwa.umj.ac.id/wp-content/uploads/2025/09/WhatsApp-Image-2025-09-26-at-08.34.03_f8481884.jpg"
+                        alt="QRIS Donasi" class="w-48 h-auto border rounded shadow" />
+                </div>
+            </div>
+
+            <p class="text-sm mt-2 text-gray-700">
+                Setelah transfer, harap hubungi narahubung untuk konfirmasi dan bukti transfer agar tercatat sebagai
+                donasi renovasi:
+            </p>
+            <ul class="list-disc ml-6 text-sm mt-2 text-gray-700">
+                <li>Rudy Hartono: 0858-8137-9857</li>
+                <li>Email: attaqwa@umj.ac.id</li>
+            </ul>
+
+            <button onclick="toggleModal()"
+                class="absolute top-2 right-4 text-xl text-gray-600 hover:text-red-500">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        const donations = [
+            { tanggal: "20250903", nama: "UMJ", jumlah: 160150000, transfered: 48045000, status: "PLANNED" },
+            { tanggal: "20250903", nama: "Adi Mansah", jumlah: 500000, transfered: 0, status: "PENDING" },
+            { tanggal: "20250903", nama: "Tajudin", jumlah: 500000, transfered: 0, status: "PENDING" },
+            { tanggal: "20251012", nama: "Mulkan Habibi", jumlah: 500000, transfered: 500000, status: "TRANSFERED (18:27:16)" },
+            { tanggal: "20250903", nama: "Hamba Allah", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (12:19:20)" },
+            { tanggal: "20250903", nama: "Misriandi", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (12:40:14)" },
+            { tanggal: "20250904", nama: "Aribowo", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (14:53:38)" },
+            { tanggal: "20251010", nama: "Pak Nalim", jumlah: 250000, transfered: 250000, status: "TRANSFERED (19:02:59)" },
+            { tanggal: "20251012", nama: "Ibu Badriyah", jumlah: 100000, transfered: 100000, status: "TRANSFERED (06:42:38)" },
+            { tanggal: "20251014", nama: "Dr. Sopa", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (13:30:30)" },
+            { tanggal: "20251015", nama: "Prof Liza Nora", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (06:52:24)" },
+            { tanggal: "20251019", nama: "Prof Iswan", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (16:49:02)" },
+            { tanggal: "20251020", nama: "Rahmat Salam", jumlah: 500000, transfered: 500000, status: "TRANSFERED (04:46:14)" },
+            { tanggal: "20251020", nama: "Ibu Sokhivah M.Si", jumlah: 500000, transfered: 500000, status: "TRANSFERED (09:31:51)" },
+            { tanggal: "20251010", nama: "Dr. Irfan Tarmizi", jumlah: 500000, transfered: 500000, status: "TRANSFERED (14:13:46)" },
+            { tanggal: "20251020", nama: "Alm M Aswinarya Islamie", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (09:45:13)" },
+            { tanggal: "20251020", nama: "Diana", jumlah: 5000000, transfered: 5000000, status: "TUNAI (15:30)" },
+            { tanggal: "20251021", nama: "Prof. Dr. Ma'mun Murod", jumlah: 1000000, transfered: 1000000, status: "TRANSFERED (06:32:29)" },
+            { tanggal: "20251021", nama: "Anggi Ramdani", jumlah: 100000, transfered: 100000, status: "TRANSFERED (08:26)" },
+            { tanggal: "20251020", nama: "Hamba Allah", jumlah: 500000, transfered: 500000, status: "TRANSFERED (05:35:07)" },
+            { tanggal: "20251023", nama: "Alm. Yahya bin H Idup", jumlah: 500000, transfered: 500000, status: "TRANSFERED (12:06:36)" },
+        ];
+
+        const totalTarget = 376_325_000;
+
+        function formatRupiah(v) { return "Rp." + v.toLocaleString("id-ID") }
+        function formatDate(d) { return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` }
+
+        function renderDonations() {
+            const list = document.getElementById("donationList");
+            const progress = document.getElementById("progressBar");
+            const transfered = document.getElementById("transferedBar");
+            const textTerkumpul = document.getElementById("progressText");
+            const textDiterima = document.getElementById("transferText");
+            list.innerHTML = "";
+
+            let totalJumlah = 0, totalTransfered = 0;
+            const sorted = donations.sort((a, b) => b.jumlah - a.jumlah);
+
+            sorted.forEach((d, i) => {
+                totalJumlah += d.jumlah;
+                totalTransfered += d.transfered || 0;
+
+                // medal colors
+                let bg = "bg-white", text = "text-gray-800", font = "text-lg";
+                if (i === 0) { bg = "bg-gradient-to-r from-yellow-300 to-yellow-100"; text = "text-yellow-800 font-bold"; font = "text-lg md:text-2xl"; }
+                else if (i === 1) { bg = "bg-gradient-to-r from-gray-400 to-gray-100"; text = "text-gray-800 font-semibold"; font = "text-lg md:text-xl"; }
+                else if (i === 2) { bg = "bg-gradient-to-r from-amber-400 to-orange-100"; text = "text-orange-800 font-semibold"; font = "text-lg md:text-lg"; }
+
+                const ratio = (d.transfered / d.jumlah) * 100;
+
+                const el = document.createElement("div");
+                el.className = `${bg} rounded-lg p-4 shadow`;
+                el.innerHTML = `
+      <div class="grid grid-cols-2 w-full">
+        <div class="${font} ${text}">#${i + 1} - ${d.nama}</div>
+        <div class="${font} font-bold ${text} text-right">${formatRupiah(d.jumlah)}</div>
+        <div class="text-sm text-gray-500">${formatDate(d.tanggal)}</div>
+        <div class="text-sm text-gray-500 text-right">${d.status}</div>
+      </div>
+      ${ratio < 100
+                        ? `<div class="col-span-2 bg-gray-100 rounded-full h-3 mt-2 relative overflow-hidden">
+              <div class="bg-blue-500 h-3 absolute left-0 top-0" style="width:${ratio.toFixed(1)}%;"></div>
+            </div>
+            <div class="text-xs text-gray-600 mt-1 text-right">${formatRupiah(d.transfered)} / ${formatRupiah(d.jumlah)}</div>`
+                        : ""
+                    }
+    `;
+                list.appendChild(el);
+            });
+
+            const p = (totalJumlah / totalTarget) * 100, t = (totalTransfered / totalTarget) * 100;
+            progress.style.width = `${p.toFixed(2)}%`;
+            transfered.style.width = `${t.toFixed(2)}%`;
+            textTerkumpul.textContent = `${formatRupiah(totalJumlah)} Terkumpul`;
+            textDiterima.textContent = `${formatRupiah(totalTransfered)} Diterima`;
+        }
+
+        function toggleModal() {
+            const m = document.getElementById("modal");
+            m.classList.toggle("hidden"); m.classList.toggle("flex");
+        }
+        function copyRekening() {
+            const r = document.getElementById("rekening").textContent;
+            navigator.clipboard.writeText(r); alert("Nomor rekening disalin: " + r);
+        }
+        renderDonations();
+        // === Galeri Renovasi (Draggable Carousel) ===
+        const galleryImages = [
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/renov-projected.jpg",
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-16-at-10.35.27_5661bf74.jpg",
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-20-at-07.47.39_b66d3bc8.jpg",
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-20-at-07.47.39_aa46b9ab.jpg",
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-19-at-08.13.20_8b828368.jpg",
+            "https://attaqwa.umj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-19-at-10.46.57_096553d9.jpg",
+        ];
+
+        const galleryTrack = document.getElementById("galleryTrack");
+        const galleryModal = document.getElementById("galleryModal");
+        const galleryOverlay = document.getElementById("galleryOverlay");
+        const galleryModalImg = document.getElementById("galleryModalImg");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+
+        let currentTranslate = 0;
+        let isDragging = false;
+        let startX = 0;
+        let currentIndex = 0;
+        const visibleCount = 3;
+
+        // Build thumbnails
+        galleryImages.forEach((url, i) => {
+            const div = document.createElement("div");
+            div.className =
+                "min-w-[calc(33.333%-0.75rem)] h-60 bg-center bg-cover rounded-lg shadow cursor-pointer";
+            div.style.backgroundImage = `url('${url}')`;
+            div.addEventListener("click", () => openModal(i));
+            galleryTrack.appendChild(div);
+        });
+
+        function moveTo(offset) {
+            const maxTranslate =
+                -(galleryImages.length - visibleCount) *
+                (galleryTrack.clientWidth / visibleCount + 12);
+            currentTranslate = Math.max(Math.min(currentTranslate + offset, 0), maxTranslate);
+            galleryTrack.style.transform = `translateX(${currentTranslate}px)`;
+        }
+
+        // Thumbnail nav
+        document.getElementById("nextBtn").addEventListener("click", () =>
+            moveTo(-galleryTrack.clientWidth / visibleCount)
+        );
+        document.getElementById("prevBtn").addEventListener("click", () =>
+            moveTo(galleryTrack.clientWidth / visibleCount)
+        );
+
+        // Dragging
+        galleryTrack.addEventListener("mousedown", startDrag);
+        galleryTrack.addEventListener("touchstart", startDrag);
+        galleryTrack.addEventListener("mousemove", drag);
+        galleryTrack.addEventListener("touchmove", drag);
+        galleryTrack.addEventListener("mouseup", endDrag);
+        galleryTrack.addEventListener("mouseleave", endDrag);
+        galleryTrack.addEventListener("touchend", endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            startX = e.pageX || e.touches[0].pageX;
+        }
+        function drag(e) {
+            if (!isDragging) return;
+            const x = e.pageX || e.touches[0].pageX;
+            const delta = x - startX;
+            galleryTrack.style.transform = `translateX(${currentTranslate + delta}px)`;
+        }
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            const x = e.pageX || e.changedTouches[0].pageX;
+            const delta = x - startX;
+            if (Math.abs(delta) > 80) moveTo(delta);
+            else moveTo(0);
+        }
+
+        // --- Modal Functions ---
+        function openModal(index) {
+            currentIndex = index;
+            updateModal();
+            galleryModal.classList.remove("hidden");
+            galleryModal.classList.add("flex");
+        }
+        function closeModal() {
+            galleryModal.classList.add("hidden");
+            galleryModal.classList.remove("flex");
+        }
+        function updateModal() {
+            galleryModalImg.src = galleryImages[currentIndex];
+        }
+
+        // Modal controls
+        document.getElementById("modalNext").addEventListener("click", () => {
+            currentIndex = (currentIndex + 1) % galleryImages.length;
+            updateModal();
+        });
+        document.getElementById("modalPrev").addEventListener("click", () => {
+            currentIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+            updateModal();
+        });
+        galleryOverlay.addEventListener("click", closeModal);
+        closeModalBtn.addEventListener("click", closeModal);
+    </script>
+
+</body>
+
+</html>
